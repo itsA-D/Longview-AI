@@ -63,17 +63,25 @@ def initialize_session(first_name, last_name):
                 # Try to get user
                 zep.user.get(st.session_state.zep_user_id)
                 user_exists = True
-            except Exception:
-                # User doesn't exist, create a new one
-                zep.user.add(
-                    first_name=first_name,
-                    last_name=last_name,
-                    user_id=st.session_state.zep_user_id,
-                    fact_rating_instruction=FactRatingInstruction(
-                        instruction=fact_rating_instruction,
-                        examples=fact_rating_examples,
-                    ),
-                )
+            except Exception as get_error:
+                # User doesn't exist, try to create a new one
+                try:
+                    zep.user.add(
+                        first_name=first_name,
+                        last_name=last_name,
+                        user_id=st.session_state.zep_user_id,
+                        fact_rating_instruction=FactRatingInstruction(
+                            instruction=fact_rating_instruction,
+                            examples=fact_rating_examples,
+                        ),
+                    )
+                except Exception as add_error:
+                    # If user already exists error, that's fine - treat as existing user
+                    if "already exists" in str(add_error).lower():
+                        user_exists = True
+                    else:
+                        # Some other error, re-raise it
+                        raise add_error
 
             # Create thread for the user (whether new or existing)
             try:

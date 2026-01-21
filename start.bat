@@ -47,6 +47,7 @@ echo   Press Ctrl+C to stop the app
 echo ========================================
 echo.
 
+REM Use conda run to ensure correct environment
 conda run -n agentic streamlit run app.py
 
 if %errorlevel% neq 0 (

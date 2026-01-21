@@ -52,8 +52,16 @@ class ZepConversableAgent(ConversableAgent):  # Agent with Zep memory
                 content = str(message)
 
             if content:
+                # Truncate if exceeds Zep's 4096 character limit
+                MAX_CONTENT_LENGTH = 4096
+                if len(content) > MAX_CONTENT_LENGTH:
+                    content = content[:MAX_CONTENT_LENGTH - 50] + "\n\n[Message truncated due to length]"
+                
                 zep_message = Message(
-                    role_type="assistant", role=self.name, content=content
+                    role_type="assistant",
+                    role="assistant",
+                    content=content,
+                    metadata={"agent_name": self.name}
                 )
                 self.zep_client.thread.add_messages(
                     thread_id=self.zep_session_id, messages=[zep_message]
@@ -76,10 +84,16 @@ class ZepConversableAgent(ConversableAgent):  # Agent with Zep memory
     def _zep_persist_user_message(self, user_content: str, user_name: str = "User"):
         """User sends a message to the agent. Add the message to Zep."""
         if user_content:
+            # Truncate if exceeds Zep's 4096 character limit
+            MAX_CONTENT_LENGTH = 4096
+            if len(user_content) > MAX_CONTENT_LENGTH:
+                user_content = user_content[:MAX_CONTENT_LENGTH - 50] + "\n\n[Message truncated due to length]"
+            
             zep_message = Message(
                 role_type="user",
-                role=user_name,
+                role="user",  # Always use "user" - API requirement
                 content=user_content,
+                metadata={"user_name": user_name}  # Store actual name in metadata
             )
             self.zep_client.thread.add_messages(
                 thread_id=self.zep_session_id, messages=[zep_message]
